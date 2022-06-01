@@ -11,6 +11,9 @@ HEADERS = {
     "Content-Type": "application/json",
     "X-FreeScout-API-Key": FS_API_KEY
     }
+USERS_ENDPOINT = "api/users"
+MAILBOX_ENDPOINT = "api/mailboxes"
+CONVERSATION_ENDPOINT = "api/conversations"
 
 
 class FreeScoutClient:
@@ -19,13 +22,13 @@ class FreeScoutClient:
 
     def get_mailboxes(self):
         data = {}
-        r = requests.get(os.getenv("MAILBOX_ENDPOINT"), headers=HEADERS, json=data)
+        r = requests.get(os.getenv("FREESCOUT_URL")+"/"+MAILBOX_ENDPOINT, headers=HEADERS, json=data)
         results = r.json()
         return results["_embedded"]["mailboxes"]
     
     def get_users():
         data = {}
-        r = requests.get(os.getenv("USERS_ENDPOINT"), headers=HEADERS, json=data)
+        r = requests.get(os.getenv("FREESCOUT_URL")+"/"+USERS_ENDPOINT, headers=HEADERS, json=data)
         results = r.json()
         return results["_embedded"]["users"]
 
