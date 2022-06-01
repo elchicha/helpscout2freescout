@@ -3,9 +3,7 @@ import requests
 from dotenv import load_dotenv
 import os
 
-USERS_ENDPOINT = 'https://mail.tcsfmt.com/api/users'
-MAILBOX_ENDPOINT = 'https://mail.tcsfmt.com/api/mailboxes'
-CONVERSATION_ENDPOINT = ""
+
 load_dotenv()
 FS_API_KEY = os.getenv("FREESCOUT_API")
 
@@ -21,13 +19,13 @@ class FreeScoutClient:
 
     def get_mailboxes(self):
         data = {}
-        r = requests.get(MAILBOX_ENDPOINT, headers=HEADERS, json=data)
+        r = requests.get(os.getenv("MAILBOX_ENDPOINT"), headers=HEADERS, json=data)
         results = r.json()
         return results["_embedded"]["mailboxes"]
     
     def get_users():
         data = {}
-        r = requests.get(USERS_ENDPOINT, headers=HEADERS, json=data)
+        r = requests.get(os.getenv("USERS_ENDPOINT"), headers=HEADERS, json=data)
         results = r.json()
         return results["_embedded"]["users"]
 
