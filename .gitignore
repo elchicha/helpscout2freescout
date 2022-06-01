@@ -1,1 +1,5 @@
-creds.py
+credentials.py
+
+.vscode/
+__pycache__/
+*.pyc
