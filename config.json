@@ -1,0 +1,17 @@
+{
+    "hs_mailbox_id": 114038,
+    "start_date": "2017-06-22 14:01:00",
+    "end_date": "2017-06-22 14:01:59",
+    "imported": "true",
+    "time_zone": "America/Los_Angeles",
+    "fs_mailbox_id": 4,
+    "user_mapping": [
+            {"hs_id": 1, "fs_id": 11},
+            {"hs_id": 203465, "fs_id": 3},
+            {"hs_id": 203477, "fs_id": 6},
+            {"hs_id": 203476, "fs_id": 7},
+            {"hs_id": 284470, "fs_id": 8},
+            {"hs_id": 456184, "fs_id": 9},
+            {"hs_id": 571427, "fs_id": 10}
+        ]
+}
