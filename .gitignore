@@ -4,4 +4,5 @@ credentials.py
 .vscode/
 __pycache__/
 *.pyc
-.env copy
+
+download/
