@@ -1,10 +1,12 @@
+from re import T
 from helpscoutclient import HelpScoutClient
 from freescoutclient import *
 import os
 from dotenv import load_dotenv
 import json
-
+import tqdm
 from config import *
+import asyncio
 
 
 class Main:
@@ -38,40 +40,53 @@ class Main:
         conversations = self.hs_client.get_conversations_created_by_range(
                 self.conf_data["start_date"],
                 self.conf_data["end_date"],
+                self.conf_data["hs_mailbox_id"],
                 self.conf_data["time_zone"])
         return conversations
     
-    def create_FS_conversations(self, hs_conversations):
+    async def create_FS_conversations(self, hs_conversations):
         """Create new FreeScout conversations from HelpScout conversations."""
-        for hsc in hs_conversations:
-            fsc = FreeScoutConversation()
-            fsc.type = hsc.type
-            fsc.conf_data = self.conf_data
-            fsc.mailboxId = self.conf_data["fs_mailbox_id"]
-            fsc.subject = hsc.subject
-            fsc.status = hsc.status
-            fsc.tags = hsc.tags
-            if hsc.type == "phone":
-                fsc.customer = {
-                "firstName": hsc.primaryCustomer["first"],
-                "lastName": hsc.primaryCustomer["last"]
-                }
-            else:
-                fsc.customer = {"email": hsc.primaryCustomer.get("email", "fremont+noemail@thecoderschool.com"),
-                                "firstName": hsc.primaryCustomer["first"],
-                                "lastName": hsc.primaryCustomer["last"]
-                                }
-            fsc.createdAt = hsc.createdAt
-            if hsc.status == "closed":
-                fsc.closedAt = hsc.closedAt
-            fsc.append_threads(hsc._embedded["threads"])
-            self.fs_client.create_conversation(fsc)
+        fs_logger.debug("Creating FreeScout conversations.")
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for hsc in hs_conversations:
+                fsc = FreeScoutConversation()
+                fsc.type = hsc.type
+                fsc.conf_data = self.conf_data
+                fsc.mailboxId = self.conf_data["fs_mailbox_id"]
+                fsc.subject = ""
+                if hasattr(hsc, "subject"):
+                    fsc.subject = hsc.subject
+                fsc.status = hsc.status
+                fsc.tags = hsc.tags
+                if hsc.type == "phone":
+                    fsc.customer = {
+                    "firstName": hsc.primaryCustomer["first"],
+                    "lastName": hsc.primaryCustomer["last"]
+                    }
+                else:
+                    fsc.customer = {"email": hsc.primaryCustomer.get("email", "fremont+noemail@thecoderschool.com"),
+                                    "firstName": hsc.primaryCustomer["first"],
+                                    "lastName": hsc.primaryCustomer["last"]
+                                    }
+                fsc.createdAt = hsc.createdAt
+                if hasattr(hsc, "assignee"):
+                    fsc.assignTo = fsc.lookup_user(hsc.assignee["id"])
+                if hsc.status == "closed":
+                    fsc.closedAt = hsc.closedAt
+                fsc.append_threads(hsc._embedded["threads"], self.hs_client.client.access_token)
+                tasks.append(asyncio.ensure_future(self.fs_client.create_conversation(fsc)))
+
+            # await asyncio.gather(*tasks)
+            conversations = [await f for f in tqdm.tqdm(asyncio.as_completed(tasks), total=len(tasks), ncols=82)]
+            # return conversations
 
     def run(self):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         self.welcome_msg()
         self.load_config()
         cnvs = self.get_HS_conversations()
-        self.create_FS_conversations(cnvs)
+        asyncio.run(self.create_FS_conversations(cnvs))
         self.fs_client.list_conversations()
 
 

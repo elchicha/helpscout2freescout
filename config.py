@@ -1,6 +1,10 @@
 import logging
+import urllib3
 
-log_level = "DEBUG"
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+log_level = "INFO"
 hs_logger = logging.getLogger('HelpScout Client')
 logging.basicConfig(level=log_level)
 fs_logger = logging.getLogger('FreeScout Client')
